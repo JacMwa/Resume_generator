@@ -370,7 +370,8 @@ const Billing: React.FC = () => {
                           </>
                         )}
                       </button>
-                  ${plan.price}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
