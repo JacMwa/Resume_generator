@@ -117,9 +117,9 @@ const Billing: React.FC = () => {
       setTimeout(() => {
         const source = sessionStorage.getItem('downloadSource') || 'resume';
         if (source === 'cover-letter') {
-          navigate('/cover-letter', { state: { download: true } });
+          navigate('/cover-letter');
         } else {
-          navigate('/builder', { state: { download: true } });
+          navigate('/builder');
         }
       }, 2000);
     } catch (error) {

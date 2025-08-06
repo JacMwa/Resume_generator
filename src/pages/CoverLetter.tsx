@@ -38,28 +38,6 @@ const CoverLetter: React.FC = () => {
 
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // Handle PDF download after payment
-  useEffect(() => {
-    const shouldDownload = location.state?.download;
-    if (shouldDownload) {
-      // Clear the navigation state
-      window.history.replaceState({}, document.title);
-      
-      // Trigger single PDF download
-      const downloadPDF = async () => {
-        try {
-          await generatePDF('cover-letter-preview', `${coverLetterData.personalInfo.name.replace(/\s+/g, '_')}_Cover_Letter.pdf`);
-        } catch (error) {
-          console.error('Error downloading PDF:', error);
-          alert('Error downloading PDF. Please try again.');
-        }
-      };
-      
-      // Single download execution
-      downloadPDF();
-    }
-  }, [location.state, coverLetterData.personalInfo.name]);
-
   const generateAICoverLetter = async () => {
     setIsGenerating(true);
     // Simulate AI generation

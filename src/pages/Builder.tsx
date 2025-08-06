@@ -53,28 +53,6 @@ const Builder: React.FC = () => {
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState('modern');
 
-  // Handle PDF download after payment
-  useEffect(() => {
-    const shouldDownload = location.state?.download;
-    if (shouldDownload) {
-      // Clear the navigation state
-      window.history.replaceState({}, document.title);
-      
-      // Trigger single PDF download
-      const downloadPDF = async () => {
-        try {
-          await generatePDF('resume-preview', `${resumeData.personalInfo.name.replace(/\s+/g, '_')}_Resume.pdf`);
-        } catch (error) {
-          console.error('Error downloading PDF:', error);
-          alert('Error downloading PDF. Please try again.');
-        }
-      };
-      
-      // Single download execution
-      downloadPDF();
-    }
-  }, [location.state, resumeData.personalInfo.name]);
-
   const generateAISummary = async () => {
     setIsGeneratingSummary(true);
     // Simulate AI generation
