@@ -25,7 +25,7 @@ const Billing: React.FC = () => {
     {
       id: 'basic',
       name: 'Basic',
-      price: 9.99,
+      price: 5.99,
       features: [
         '5 PDF Downloads',
         'Basic Templates',
@@ -37,7 +37,7 @@ const Billing: React.FC = () => {
     {
       id: 'pro',
       name: 'Pro',
-      price: 19.99,
+      price: 10.99,
       popular: true,
       features: [
         '10 PDF Downloads',
@@ -51,9 +51,9 @@ const Billing: React.FC = () => {
     {
       id: 'enterprise',
       name: 'Enterprise',
-      price: 39.99,
+      price: 25.99,
       features: [
-        '20 PDF Downloads',
+        '40 PDF Downloads',
         'All Premium Templates',
         'AI-Powered Content',
         'Custom Branding',
@@ -66,52 +66,19 @@ const Billing: React.FC = () => {
 
   const paymentMethods = [
     {
-      id: 'stripe',
-      name: 'Credit/Debit Card',
-      icon: <CreditCard className="h-6 w-6" />,
-      description: 'Visa, Mastercard, American Express'
-    },
-    {
       id: 'mpesa',
       name: 'M-Pesa',
       icon: <Smartphone className="h-6 w-6" />,
       description: 'Mobile money payment'
-    },
-    {
-      id: 'bank',
-      name: 'Bank Transfer',
-      icon: <Building className="h-6 w-6" />,
-      description: 'Direct bank transfer'
-    },
-    {
-      id: 'paypal',
-      name: 'PayPal',
-      icon: <DollarSign className="h-6 w-6" />,
-      description: 'Pay with your PayPal account'
     }
   ];
 
   const handlePayment = async () => {
     const selectedPlanData = plans.find(plan => plan.id === selectedPlan);
     
-    if (selectedPayment === 'card') {
-      if (!paymentForm.cardNumber || !paymentForm.expiryDate || !paymentForm.cvv || !paymentForm.cardName) {
-        alert('Please fill in all card details');
-        return;
-      }
-    } else if (selectedPayment === 'mpesa') {
+    if (selectedPayment === 'mpesa') {
       if (!paymentForm.mpesaPhone) {
         alert('Please enter your M-Pesa phone number');
-        return;
-      }
-    } else if (selectedPayment === 'bank') {
-      if (!paymentForm.bankAccount || !paymentForm.bankName) {
-        alert('Please fill in your bank details');
-        return;
-      }
-    } else if (selectedPayment === 'paypal') {
-      if (!paymentForm.paypalEmail) {
-        alert('Please enter your PayPal email');
         return;
       }
     }
@@ -238,7 +205,7 @@ const Billing: React.FC = () => {
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6">
               <h2 className="text-2xl font-bold mb-2">Complete Your Purchase</h2>
               <p className="text-blue-100">
-                You've selected the <strong>{selectedPlanData?.name}</strong> plan for <strong>${selectedPlanData?.price}/month</strong>
+                You've selected the <strong>{selectedPlanData?.name}</strong> plan for <strong>${selectedPlanData?.price}</strong>
               </p>
             </div>
 
@@ -275,52 +242,6 @@ const Billing: React.FC = () => {
                         {/* Payment Form Fields */}
                         {selectedPayment === method.id && (
                           <div className="mt-4 space-y-3 border-t pt-4">
-                            {method.id === 'stripe' && (
-                              <>
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
-                                  <input
-                                    type="text"
-                                    placeholder="1234 5678 9012 3456"
-                                    value={paymentForm.cardNumber}
-                                    onChange={(e) => updatePaymentForm('cardNumber', e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                  />
-                                </div>
-                                <div className="grid grid-cols-2 gap-3">
-                                  <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
-                                    <input
-                                      type="text"
-                                      placeholder="MM/YY"
-                                      value={paymentForm.expiryDate}
-                                      onChange={(e) => updatePaymentForm('expiryDate', e.target.value)}
-                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-                                  </div>
-                                  <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">CVV</label>
-                                    <input
-                                      type="text"
-                                      placeholder="123"
-                                      value={paymentForm.cvv}
-                                      onChange={(e) => updatePaymentForm('cvv', e.target.value)}
-                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-                                  </div>
-                                </div>
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">Cardholder Name</label>
-                                  <input
-                                    type="text"
-                                    placeholder="John Doe"
-                                    value={paymentForm.cardName}
-                                    onChange={(e) => updatePaymentForm('cardName', e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                  />
-                                </div>
-                              </>
-                            )}
 
                             {method.id === 'mpesa' && (
                               <>
@@ -340,63 +261,6 @@ const Billing: React.FC = () => {
                                     1. Send <strong>${selectedPlanData?.price}</strong> to <strong>+254741437924</strong><br/>
                                     2. Use your phone number as reference<br/>
                                     3. Click "Complete Payment" after sending
-                                  </p>
-                                </div>
-                              </>
-                            )}
-
-                            {method.id === 'bank' && (
-                              <>
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">Your Bank Account Number</label>
-                                  <input
-                                    type="text"
-                                    placeholder="Your account number"
-                                    value={paymentForm.bankAccount}
-                                    onChange={(e) => updatePaymentForm('bankAccount', e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                  />
-                                </div>
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">Your Bank Name</label>
-                                  <input
-                                    type="text"
-                                    placeholder="e.g., KCB Bank"
-                                    value={paymentForm.bankName}
-                                    onChange={(e) => updatePaymentForm('bankName', e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                  />
-                                </div>
-                                <div className="bg-green-50 p-3 rounded-lg">
-                                  <p className="text-sm text-green-800">
-                                    <strong>Our Bank Details:</strong><br/>
-                                    Account: <strong>1305349989</strong><br/>
-                                    Bank: <strong>KCB Bank Kenya - Ruiru Branch</strong><br/>
-                                    Amount: <strong>${selectedPlanData?.price}</strong><br/>
-                                    Reference: Your account number
-                                  </p>
-                                </div>
-                              </>
-                            )}
-
-                            {method.id === 'paypal' && (
-                              <>
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">PayPal Email</label>
-                                  <input
-                                    type="email"
-                                    placeholder="your-email@example.com"
-                                    value={paymentForm.paypalEmail}
-                                    onChange={(e) => updatePaymentForm('paypalEmail', e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                  />
-                                </div>
-                                <div className="bg-blue-50 p-3 rounded-lg">
-                                  <p className="text-sm text-blue-800">
-                                    <strong>Payment Instructions:</strong><br/>
-                                    1. Confirm your PayPal email above<br/>
-                                    2. You'll be redirected to PayPal<br/>
-                                    3. Complete payment of <strong>${selectedPlanData?.price}</strong>
                                   </p>
                                 </div>
                               </>
@@ -432,7 +296,7 @@ const Billing: React.FC = () => {
                         </div>
                         <div className="flex justify-between items-center text-sm text-gray-600">
                           <span>Payment Method</span>
-                          <span className="capitalize">{paymentMethods.find(p => p.id === selectedPayment)?.name}</span>
+                          <span className="capitalize">M-Pesa</span>
                         </div>
                       </div>
 
@@ -485,7 +349,7 @@ const Billing: React.FC = () => {
                         </div>
                         <div className="flex items-center space-x-2 text-sm text-gray-600">
                           <Download className="h-4 w-4 text-purple-500" />
-                          <span>Unlimited downloads included</span>
+                          <span>PDF downloads included</span>
                         </div>
                       </div>
 
@@ -501,13 +365,12 @@ const Billing: React.FC = () => {
                           </>
                         ) : (
                           <>
-                            <CreditCard className="h-5 w-5" />
+                            <Smartphone className="h-5 w-5" />
                             <span>Complete Payment</span>
                           </>
                         )}
                       </button>
-                    </div>
-                  )}
+                  ${plan.price}
                 </div>
               </div>
             </div>
