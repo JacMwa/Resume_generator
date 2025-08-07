@@ -7,9 +7,11 @@ import { supabase } from '../lib/supabaseClient';
 const Billing: React.FC = () => {
   const navigate = useNavigate();
   const [selectedPlan, setSelectedPlan] = useState('pro');
-  const [selectedPayment, setSelectedPayment] = useState('stripe');
+  const [selectedPayment, setSelectedPayment] = useState('mpesa');
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentCompleted, setPaymentCompleted] = useState(false);
+  const [formErrors, setFormErrors] = useState<{[key: string]: string}>({});
+  const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [paymentForm, setPaymentForm] = useState({
     cardNumber: '',
     expiryDate: '',
@@ -73,16 +75,29 @@ const Billing: React.FC = () => {
     }
   ];
 
-  const handlePayment = async () => {
-    const selectedPlanData = plans.find(plan => plan.id === selectedPlan);
+  const validateForm = () => {
+    const errors: {[key: string]: string} = {};
     
     if (selectedPayment === 'mpesa') {
-      if (!paymentForm.mpesaPhone) {
-        alert('Please enter your M-Pesa phone number');
-        return;
+      if (!paymentForm.mpesaPhone.trim()) {
+        errors.mpesaPhone = 'M-Pesa phone number is required';
+      } else if (!/^\+254\d{9}$/.test(paymentForm.mpesaPhone.trim())) {
+        errors.mpesaPhone = 'Please enter a valid M-Pesa number (format: +254XXXXXXXXX)';
       }
     }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
+  const handlePayment = async () => {
+    // Validate form before processing
+    if (!validateForm()) {
+      return;
+    }
+
+    const selectedPlanData = plans.find(plan => plan.id === selectedPlan);
+    
     setIsProcessing(true);
     
     try {
@@ -104,33 +119,40 @@ const Billing: React.FC = () => {
 
       if (error) {
         console.error('Error saving billing data:', error);
-        alert('Payment processing failed. Please try again.');
+        setFormErrors({ general: 'Payment processing failed. Please try again.' });
         setIsProcessing(false);
         return;
       }
 
-      // Simulate payment processing delay
-      setIsProcessing(false);
-      setPaymentCompleted(true);
-      
-      // Redirect to download after success message
+      // Simulate payment processing delay (3 seconds)
       setTimeout(() => {
-        const source = sessionStorage.getItem('downloadSource') || 'resume';
-        if (source === 'cover-letter') {
-          navigate('/cover-letter');
-        } else {
-          navigate('/builder');
-        }
-      }, 2000);
+        setIsProcessing(false);
+        setPaymentCompleted(true);
+        setPaymentConfirmed(true);
+      }, 3000);
+      
     } catch (error) {
       console.error('Payment error:', error);
-      alert('Payment processing failed. Please try again.');
+      setFormErrors({ general: 'Payment processing failed. Please try again.' });
       setIsProcessing(false);
+    }
+  };
+
+  const handleDownloadRedirect = () => {
+    const source = sessionStorage.getItem('downloadSource') || 'resume';
+    if (source === 'cover-letter') {
+      navigate('/cover-letter');
+    } else {
+      navigate('/builder');
     }
   };
 
   const updatePaymentForm = (field: string, value: string) => {
     setPaymentForm(prev => ({ ...prev, [field]: value }));
+    // Clear field error when user starts typing
+    if (formErrors[field]) {
+      setFormErrors(prev => ({ ...prev, [field]: '' }));
+    }
   };
 
   const selectedPlanData = plans.find(plan => plan.id === selectedPlan);
@@ -248,22 +270,36 @@ const Billing: React.FC = () => {
                             {method.id === 'mpesa' && (
                               <>
                                 <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">Your M-Pesa Phone Number</label>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Your M-Pesa Phone Number *
+                                  </label>
                                   <input
                                     type="tel"
                                     placeholder="+254700000000"
                                     value={paymentForm.mpesaPhone}
                                     onChange={(e) => updatePaymentForm('mpesaPhone', e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                                      formErrors.mpesaPhone ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                                    }`}
                                   />
+                                  {formErrors.mpesaPhone && (
+                                    <p className="text-red-500 text-sm mt-1">{formErrors.mpesaPhone}</p>
+                                  )}
                                 </div>
-                                <div className="bg-blue-50 p-3 rounded-lg">
-                                  <p className="text-sm text-blue-800">
-                                    <strong>Payment Instructions:</strong><br/>
-                                    1. Send <strong>${selectedPlanData?.price}</strong> to <strong>+254741437924</strong><br/>
-                                    2. Use your phone number as reference<br/>
-                                    3. Click "Complete Payment" after sending
-                                  </p>
+                                <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                                  <h4 className="font-semibold text-blue-800 mb-2">📱 M-Pesa Payment Instructions</h4>
+                                  <div className="text-sm text-blue-800 space-y-1">
+                                    <p><strong>Step 1:</strong> Go to M-Pesa on your phone</p>
+                                    <p><strong>Step 2:</strong> Select "Send Money"</p>
+                                    <p><strong>Step 3:</strong> Send <strong className="bg-blue-200 px-2 py-1 rounded">${selectedPlanData?.price}</strong> to <strong className="bg-blue-200 px-2 py-1 rounded">+254741437924</strong></p>
+                                    <p><strong>Step 4:</strong> Use your phone number as reference</p>
+                                    <p><strong>Step 5:</strong> Click "Complete Payment" below after sending</p>
+                                  </div>
+                                  <div className="mt-3 p-2 bg-yellow-100 border border-yellow-300 rounded">
+                                    <p className="text-yellow-800 text-xs">
+                                      ⚠️ <strong>Important:</strong> Make sure to send the exact amount from the phone number you entered above.
+                                    </p>
+                                  </div>
                                 </div>
                               </>
                             )}
@@ -281,48 +317,69 @@ const Billing: React.FC = () => {
                   {paymentCompleted ? (
                     // Payment Success State
                     <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-                      <div className="text-center mb-6">
-                        <div className="bg-green-100 p-3 rounded-full w-fit mx-auto mb-4">
-                          <Check className="h-8 w-8 text-green-600" />
-                        </div>
-                        <h4 className="text-xl font-bold text-green-800 mb-2">Payment Successful!</h4>
-                        <p className="text-green-700">
-                          Thank you for your purchase. You now have access to premium features.
-                        </p>
-                      </div>
-                      
-                      <div className="bg-white rounded-lg p-4 mb-6">
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-gray-700">{selectedPlanData?.name} Plan</span>
-                          <span className="font-semibold">${selectedPlanData?.price}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-sm text-gray-600">
-                          <span>Payment Method</span>
-                          <span className="capitalize">M-Pesa</span>
-                        </div>
-                      </div>
+                      {paymentConfirmed ? (
+                        <>
+                          <div className="text-center mb-6">
+                            <div className="bg-green-100 p-3 rounded-full w-fit mx-auto mb-4">
+                              <Check className="h-8 w-8 text-green-600" />
+                            </div>
+                            <h4 className="text-xl font-bold text-green-800 mb-2">✅ Payment Confirmed!</h4>
+                            <p className="text-green-700">
+                              Your M-Pesa payment has been successfully processed. You now have access to premium features.
+                            </p>
+                          </div>
+                          
+                          <div className="bg-white rounded-lg p-4 mb-6 border border-green-200">
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="text-gray-700">{selectedPlanData?.name} Plan</span>
+                              <span className="font-semibold text-green-600">${selectedPlanData?.price}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm text-gray-600 mb-2">
+                              <span>Payment Method</span>
+                              <span className="capitalize">M-Pesa</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm text-gray-600">
+                              <span>Phone Number</span>
+                              <span>{paymentForm.mpesaPhone}</span>
+                            </div>
+                          </div>
 
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <p className="text-blue-800 text-center mb-2">
-                          <strong>Payment Confirmed!</strong>
-                        </p>
-                        <p className="text-blue-700 text-center text-sm">
-                          Redirecting to download your PDF in 2 seconds...
-                        </p>
-                      </div>
-                      
-                      <div className="mt-4 text-center">
-                        <button
-                          onClick={() => navigate('/builder')}
-                          className="text-blue-600 hover:text-blue-700 font-medium"
-                        >
-                          Create Another Resume
-                        </button>
-                      </div>
+                          <button
+                            onClick={handleDownloadRedirect}
+                            className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-3 px-4 rounded-lg font-semibold hover:from-green-700 hover:to-green-800 transition-all duration-200 flex items-center justify-center space-x-2 mb-4"
+                          >
+                            <Download className="h-5 w-5" />
+                            <span>Continue to Download</span>
+                          </button>
+                          
+                          <div className="text-center">
+                            <button
+                              onClick={() => navigate('/builder')}
+                              className="text-green-600 hover:text-green-700 font-medium text-sm"
+                            >
+                              Create Another Resume
+                            </button>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-center">
+                          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+                          <h4 className="text-lg font-bold text-green-800 mb-2">Processing Payment...</h4>
+                          <p className="text-green-700 text-sm">
+                            Please wait while we confirm your M-Pesa payment. This may take a few moments.
+                          </p>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     // Payment Form State
                     <div className="bg-gray-50 rounded-lg p-6">
+                      {formErrors.general && (
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+                          <p className="text-red-800 text-sm">{formErrors.general}</p>
+                        </div>
+                      )}
+                      
                       <div className="space-y-4">
                         <div className="flex justify-between items-center">
                           <span className="text-gray-700">{selectedPlanData?.name} Plan</span>
@@ -358,17 +415,17 @@ const Billing: React.FC = () => {
                       <button
                         onClick={handlePayment}
                         disabled={isProcessing}
-                        className="w-full mt-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                        className="w-full mt-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 shadow-lg"
                       >
                         {isProcessing ? (
                           <>
                             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                            <span>Processing...</span>
+                            <span>Processing Payment...</span>
                           </>
                         ) : (
                           <>
                             <Smartphone className="h-5 w-5" />
-                            <span>Complete Payment</span>
+                            <span>Complete M-Pesa Payment</span>
                           </>
                         )}
                       </button>
